@@ -144,7 +144,11 @@ chr(): '아스키 코드값'에 해당하는 문자를 반환하는 함수
 correct_number = my_lotto_number()
 lotto_result(selected_number, correct_number)
 lotto()
-
+```
+```
+⚫ correct_number: 함수에서 생성된 당첨번호 6개가 저장되는 변수
+⚫ my_lotto_number(): 1~45까지 숫자 중 중복되지 않은 무작위 6개의 숫자를 뽑아 오름차순 정렬
+⚫ lotto_result(): 구매한 로또번호와 당첨번호를 비교해 결과를 화면에 출력
 ```
 
 
