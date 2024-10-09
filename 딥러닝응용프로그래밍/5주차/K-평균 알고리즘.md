@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/268b1c23-b2c0-49f2-b1d1-f7207344cc79)<div align="center">
+<div align="center">
 <h2>🟠 Colab</h2>
 </div>
 
