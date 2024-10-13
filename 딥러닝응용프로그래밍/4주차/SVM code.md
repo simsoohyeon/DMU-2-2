@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/30babadf-0345-4855-b5f2-ba6afa3f3aaa)<div align = "center">
+<div align = "center">
   <h2> SVM (Support Vector Machine).ipynb </h2>
 </div>
   
