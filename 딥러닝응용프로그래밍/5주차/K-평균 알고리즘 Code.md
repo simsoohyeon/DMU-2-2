@@ -1,5 +1,5 @@
 <div align="center">
-<h2>🟠 Colab</h2>
+<h2>K-평균 알고리즘 Code.ipynb</h2>
 </div>
 
 ## 🟣 K-Means (비지도학습)
