@@ -101,8 +101,6 @@ print("Accuracy(C=100): {}%".format(clf_100.score(X_test, y_test) * 100 ))
 clf_1_predictions = clf_1.predict(X_test) 
 clf_100_predictions = clf_100.predict(X_test)
 ```
-![image](https://github.com/user-attachments/assets/a09c581c-1af5-4991-b4df-e96a399a7ab2)
-
 ### 🟣 정확도 출력 코드
 ```
 print("Accuracy(C=1): {}%".format(clf_1.score(X_test, y_test) * 100))
