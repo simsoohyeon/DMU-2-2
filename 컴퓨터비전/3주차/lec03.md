@@ -373,20 +373,187 @@ OpenCV로 이어붙인 이미지데이터의 shape 차원을 설명
 여러 프레임을 가로로 이어붙인 후, 각각의 프레임과 결과 이미지의 shape을 확인하는 과정 
 이미지의 배열 구조와 이어붙인 후의 차원 변화 이해 
 ```
+```
+print(frames[0] .shape) => (720,1280,3)
+print(result.shape) => (720,3840,3)
+```
 ![image](https://github.com/user-attachments/assets/ffbecb1c-df91-4fde-a017-5b1137cdf64c)
 
+## 6. 그래픽 기능과 사용자 인터페이스 만들기
+### 이미지에 도형을 그리고 글씨 쓰기
+```
+# 1. openCV에 라이브러리 불러오기
+import cv2 # openCV라이브러리를 cv2라는 이름으로 불러옴, 이미지 처리 및 컴퓨터비전 작업에 사용
 
+# 2. 이미지 읽기
+img = cv2.imread('soccer.jpg')
+if img is None:
+    print('이미지를 읽을 수 없습니다.') # 이미지를 읽을 수 없으면 오류 메시지 출력
+    exit()
 
+# 3. 사각형 그리기
+# cv2.retangle()은 이미지 위에 사각형을 그리는 함수
+# 첫 번째 인자는 이미지 데이터 img, 두 번째 인자는 사각형의 시작 좌표(왼쪽 상단)
+# 세 번째 인자는 사각형의 끝 좌표(오른쪽 하단), 네 번째 인자는 사각형의 색상(초록색 (0,255,0))
+# 다섯 번째인자는 두께 =2
+cv2.rectangle(img, (50, 50), (150, 150), (0, 255, 0), 2)
 
+# 4. 글씨 쓰기
+# cv2.putText()는 이미지 위에 텍스트를 추가하는 함수
+# 첫 번째 인자는 이미지 데이터, 두 번째 인자는 텍스트, 세 번째 인자는 텍스트가 시작될 자표,
+# 네 번째 인자는 글씨체 (opencv에서 기본 제공), 다섯 번째 인자는 텍스트 크기,
+여섯 번째 인자는 텍스트 색상(초록), 일곱 번째 인자는 글씨 두께 = 2
+cv2.putText(img, 'Soccer', (50, 45), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 
+# 5. 이미지 창에 출력
+cv2.imshow('Image', img)
+cv2.waitKey(0) # 키 입력을 대기하는 함수, 아무 키나 눌러야 창이 닫힘
+cv2.destroyAllWindows() # 모든 창을 닫는 함
+```
+```
+- cv2.retangle() 이미지 위에 사각형 그릴 때 사용
+시작 좌표 , 끝 좌표, 두께를 지정해 사각형을 그림
+- cv2.putText() 이미지 위에 텍스트를 추가할 때 사용
+글씨의 시작 좌표, 폰트, 크기, 색상, 두께 등 지정하여 텍스트를 삽입
+- cv2.imshow() 이미지 창에 표시
+- cv2.waitKey() 사용자가 키를 누를 때까지 기다림
+- cv2.destoryAllWindows() 생성된 모든 opencv 창 닫음
+```
+```
+• 사각형 그리기: cv2.rectangle(데이터, (시작좌표), (끝좌표), (컬러), 두께)
+• 글씨 쓰기: cv2.putText(데이터, ‘문구’, (시작좌표), 글씨체, 크기, (컬러), 두께)
+• 컬러: (B, G, R) 0~255 사이의 값으로 할당
+```
 
+### OpenCV에서 색을 표현할 떄 BGR형식(블루, 그린, 레드)로 지정
+```
+각각의 색상은 0~255값을 가지며, 다양한 색 표현 가
+빨간색 (Red): (0, 0, 255)
+파란색 (Blue): (255, 0, 0)
+노란색 (Yellow): (0, 255, 255)
+보라색 (Purple): (255, 0, 255)
+하얀색 (White): (255, 255, 255)
+검정색 (Black): (0, 0, 0)
+```
+### 마우스를 이용하여, 선택된 좌표의 위치에 사각형을 그리고 글씨 작성하기
+```
+# 1. opencv 라이브러리 불러오기
+import cv2
 
+# 2. 이미지 읽기 cv2.imread()
+img = cv2.imread('soccer.jpg')
+if img is None:
+    print('이미지를 읽을 수 없습니다.')
+    exit()
 
+# 3. 마우스 이벤트 함수 정의 => cv2.EVENT_LBUTTONDOWN 마우스 왼쪽 버튼 눌렀을 때 이벤트 발생
+# x,y는 마우스를 클릭한 좌표
+def onMouse(event, x, y, flags, param):
+    global ix, iy
+    if event == cv2.EVENT_LBUTTONDOWN:
+        ix, iy = x, y
+        # 클릭한 좌표 ix, iy에 크기 100*100인 사각형 그림, 초록색 두께 2
+        cv2.rectangle(img, (ix, iy), (ix + 100, iy + 100), (0, 255, 0), 2)
+        cv2.putText(img, 'soccer ball', (ix, iy + 120), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 2)
+        cv2.imshow('img', img) # 업데이트된 이미지 표시 
 
+# 4. 마우스 콜백 함수 설정
+# cv2.setMouseCallback() 함수는 특정 창 img에 마우스 이벤트가 발생했을 때 onMouse함수 호출 
+cv2.setMouseCallback('img', onMouse)
 
+cv2.imshow('img', img) # img라는 창에 이미지 출력
+cv2.waitKey(0) # 사용자가 키를 누를 때까지 창 유지
+cv2.destroyAllWindows() # 모든 창 닫음
+```
+```
+- cv2.setMouseCallback(): 특정 창에서 마우스 이벤트가 발생할 때마다 지정한 콜백 함수  실행하도록 설정
+- cv2.retangle(): 이미지 위에 사각형 그리는 함수
+- cv2.putText(): 이미지 위에 텍스트 추가하는 함수
+- cv2.imshow(): 이미지를 특정 창에 표시하는 함수
+- cv2.waitKey(): 키 입력을 기다리며, 키 입력이 없으면 프로그램 종료
+- cv2.destoryAllWindows(): 모든 창 닫음 
+```
+```
+• 마우스를 이용하여, 선택된 좌표의 위치에 사각형을 그리고 글씨 작성하기
+• 왼쪽버튼 누를 때: cv2.EVENT_LBUTTONDOWN (뗄 때는 DOWN대신 UP으로 표현)
+• onMouse 함수 내 cv2.imshow의 역할: imshow로 나타난 화면에, 업데이트된 이미지를 덮는 역할
+• cv2.imshow가 두 번 등장한 이유
+```
+### onMouse함수의 역할
+```
+사용자가 마우스로 이미지를 클릭할 때마다 해당 좌표 사각형과 텍스트를 추가하는 역할
+```
+### cv2.imshow 두 번 호출된 이유
+```
+첫 번재 호출은 이미지를 화면에 표시하는 역할을 하고
+두 번째 호출은 사용자가 클릭했을 때 수정된 이미지를 업데이트하여 다시 보여주는 역할
+```
+### 마우스를 이용하여 선택된 좌표의 위치에 도형을 연소갷서 그리기
+#### 크기 1인 circle을 연속적으로 그리기 cv2.circle
+```
+# 1. 라이브러리 및 이미지 불러오기
+import cv2
+img = cv2.imread('soccer.jpg')
 
+# 2. 초기 브러시 사이즈 설정
+# brush_size는 원의 크기 결정, 초기 값은 1로 설정되어 있어 작은 원 그림
+brush_size = 1
 
+# 3. 마우스 이벤트 함수 정의 (event,x,y,flags,param)인자 통해 마우스의 상태와 좌표 처리
+def onMouse(event, x, y, flags, param):
+    global brush_size
+    # 마우스 왼쪽 버튼 눌렀을 때, 클릭된 좌표에 파란색 원 그림
+    if event == cv2.EVENT_LBUTTONDOWN:
+        cv2.circle(img, (x, y), brush_size, (255, 0, 0), 3)
+    # 마우스 오른쪽 버튼 눌렀을 때, 클릭된 자표에 빨간색 원 그림
+    elif event == cv2.EVENT_RBUTTONDOWN:
+        cv2.circle(img, (x, y), brush_size, (0, 0, 255), 3)
+    # 마우스가 움직일 때 왼쪽 버튼을 누르고 있으면 파란색 원
+    elif event == cv2.EVENT_MOUSEMOVE and flags == cv2.EVENT_FLAG_LBUTTON:
+        cv2.circle(img, (x, y), brush_size, (255, 0, 0), 3)
+    # 마우스가 움직일 때 오른쪽 버튼을 누르고 있으면 빨간색 원 그리도록 설정
+    elif event == cv2.EVENT_MOUSEMOVE and flags == cv2.EVENT_FLAG_RBUTTON:
+        cv2.circle(img, (x, y), brush_size, (0, 0, 255), 3)
+    cv2.imshow('img', img)
 
+cv2.imshow('img', img) # 이미지 표시
+cv2.setMouseCallback('img', onMouse) # 마우스 이벤트가 발생하면 onMouse함수 호출 
+
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+```
+### flags
+```
+flags는 마우스 버튼이 눌린 상태를 확인하는데 사용
+cv2.EVENT_FLAG_LBUTTON: 마우스 왼쪽 버튼이 눌린 상태
+cv2.EVENT_FLAG_RBUTTON: 마우스 오른쪽 버튼이 눌린 상
+```
+### 이미지에 도형과 글씨 작성하기
+```
+# 1. 이미지 불러오기 
+import cv2
+img = cv2.imread('soccer.jpg')
+
+# 2. 도형그리기
+# 동그라미 그리기 cv2.circle(이미지, 원의 중심 좌표, 반지름, 색상, 선 두께)
+cv2.circle(img, (100, 100), 80, (0, 0, 255), 3)
+
+# 선 그리기 cv2.line(이미지, 시작 좌표, 끝 좌표, 색상, 두께)
+cv2.line(img, (200, 300), (400, 300), (0, 255, 0), 3)
+
+# 사각형 그리기 cv2.retangle(이미지, 좌상단 좌표, 우하단 좌표, 색상, 두께)
+cv2.rectangle(img, (350, 350), (450, 450), (255, 0, 0), 3)
+
+# 타원 그리기 cv2.ellipse(이미지, 중심좌표, 가로반지름과 세로반지름, 타원의 시작각도와 끝각도, 색, 두께)
+cv2.ellipse(img, (150, 150), (100, 60), 0, 0, 360, (255, 255, 0), 3)
+
+# cv2.putText(이미지, 텍스트, 좌표, 색상(흰색), 글씨, 크기, 두께)
+cv2.putText(img, 'soccer ball', (100, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 3)
+
+cv2.imshow('img', img)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+```
 
 
 
