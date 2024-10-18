@@ -256,6 +256,9 @@ cv2.imshow('Sharpening Results', result)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 ```
+![image](https://github.com/user-attachments/assets/f483b60f-a53a-4ebd-9701-956d4c55d6fb)
+
+
 ### 영상, 박스필터, 가우시안 블러, 샤프닝, 엠보싱 순
 ```
 import cv2 # 이미지 처리 작업 수행
@@ -263,26 +266,85 @@ import numpy as np # 배열 연산 수행
 image = cv2.imread('food.jpg') # numpy 배열저장, 각 픽셀을 BGR 값 포함
 
 # 박스 필터 Box Filter, 평균 블러링
-
+# cv2.blur()는 평균 블러링 함수로, 커널크기 (9,9)적용하여 이미지의 주변 픽셀 값을 평균내어 부드럽게
 box_filtered = cv2.blur(image, (9, 9))
+
+# 가우시안 블러링 Gaussian Blurring
+# cv2.GaussianBlur() 가우시안 블러적용, 여기서 커널크기 9,9와 표준편차 10.0 설정
+# 가우시안 블러는 평균 블러와 달리 가우시안 분포에 기반하여 주변 픽셀을 부드럽게 처리
 gaussian_blurred = cv2.GaussianBlur(image, (9, 9), 10.0)
+
+# 이미지 샤프닝 Sharpening
+# cv2.addWeighted() 두 이미지의 가중치를 조합하는 함수
+# img와 gaussian_blurred를 각각 1.5와 -0.5로 조합하여 이미지의 경계 강조하는 샤프닝 효과
+# 원본이미지에 가우시안 블러를 빼서 션명한 이미지를 얻는 방식
 sharpened_image = cv2.addWeighted(image, 1.5, gaussian_blurred, -0.5, 0)
+
+# 이미지를 그레이스케일로 변환
+# cv2.cvtColor()는 컬러 이미지를 그레이스케일로 변환하는 함수
+# 이미지 처리에서 색상 정보를 제거하고 밝기 정보만을 사용해 수행하기 위한 전처리 단계
 gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+# 엠보싱 필터 적용 Embossing Filter: 입체감을 표현하는 필터
+# emboss_kernel은 3*3행렬로 각 픽셀의 차이를 강조하여 입체 효과를 냄
+# cv2.filter2D() 함수는 이 커널을 적용하여 필터링된 이미지 만듦
+# np.clip()함수는 결과값에 128을 더한 후, 0~255 사이로 값 제한하여 적절한 밝기 범위로 만듦
+# -1은 입력 이미지와 동일한 깊이를 유지하라는 뜻, 데이터 타입을 그대로 유지하며 필터링 작업
+# 이미지의 깊이는 각 픽셀이 차지하는 비트 수, 이는 픽셀의 색상 값을 표현하는데 사용
+# 일반적인 그레이스스케일 이미지는 8비트로, 픽셀값이 0~255 사이의 값 가짐 
 emboss_kernel = np.array([[-1, -1, 0], [-1, 0, 1], [0, 1, 1]])
 embossed = cv2.filter2D(gray_image, -1, emboss_kernel)
 embossed = np.uint8(np.clip(embossed + 128, 0, 255))
-result = cv2.hconcat([image, box_filtered, gaussian_blurred, sharpened_image, cv2.cvtColor(embossed, 
-cv2.COLOR_GRAY2BGR)])
+
+# 결과 이미지를 수평으로 결합
+# cv2.hconcat() 함수는 여러 이미지를 수평으로 결합해 하나의 이미지로 만듦
+# 엠보싱 이미지는 그레이스케일이므로, 이를 컬러로 변환하기 위해 cv2.cvtColor(embossed, cv2.COLOR_GRAY2BGR)
+result = cv2.hconcat([image, box_filtered, gaussian_blurred, sharpened_image,
+cv2.cvtColor(embossed, cv2.COLOR_GRAY2BGR)])
+
 cv2.imshow('Image Processing Results', result)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 ```
 
+### 주요 문법
+```
+1. cv2.blur(image, (9,9))
+: 평균 블러링 적용하는 함수로, (9,9)크기의 커널을 사용해 이미지를 부드럽게 함
 
+2. cv2.GaussianBlur(image, (9,9), 10.0)
+: 가우시안 블러링 적용 함수, 커널 크기 9,9와 표준편차 10.0 사용해 이미지의 경계선 부드럽게 함
 
+3. cv2.addWeighted()
+: 두 이미지를 가중합하여 결합하는 함수 첫 번째 이미지는 alpha가중치를, 두 번재 이미지는 beta 가중치 부여받음
 
+3. cv2.filter2D()
+: 이미지에 필터를 적용하는 함수, 필터는 커널을 의미하며 커널은 이미지의 특정 패턴을 강조하거나 제거하는데 사용
 
+4. np.clip()
+: 주어진 배열의 값을 특정 범위 내로 제한하는 함수
+엠보싱 필터 적용 후 결과값이 벗어나는 경우 이를 0~255사이의 값으로 제한 
+```
+![image](https://github.com/user-attachments/assets/b4875ecd-cbf9-4ef2-9952-ecf159fef770)
 
+### 노이즈 추가 기법
+```
+• 소금후추(Salt and Pepper) 잡음: 검/흰 픽셀을 추가
+• 가우시안 노이즈(Gaussian Noise): 각 픽셀에 가우시안 분포에 따른 랜덤 노이즈를 더하는 방식
+```
+#### - 소금후추 노이즈 Salt and Pepper Noise
+```
+이미지에 랜덤학 검은색 또는 흰색 픽셀이 추가된 노이즈
+주로 디지털 이미지 전송 중 발생하는 신호 손실이나 잡음을 표현할 때 사용
+- 이미지의 일부 픽셀이 임의로 흰색 또는 검은색으로 변경
+- 노이즈가 발생한 부분은 극명한 흰색 점으로 표시, 다른 부분은 그대로 유지
+- 소금 후추 노이즈는 특정 환경에서 발생할 수 있는 데이터 손실이나 잡음의 일종종
+```
+#### - 가우시안 노이즈 Gaussian Noise
+```
+이미지의 각 픽셀 값에 가우시안 분포에 따라 랜덤 값을 추가하는 노이즈
+자연스러운 랜덤 잡음을 표현할 때 사용
+```
 
 
 
