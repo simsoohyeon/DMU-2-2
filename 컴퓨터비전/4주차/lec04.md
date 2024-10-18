@@ -344,14 +344,471 @@ cv2.destroyAllWindows()
 ```
 이미지의 각 픽셀 값에 가우시안 분포에 따라 랜덤 값을 추가하는 노이즈
 자연스러운 랜덤 잡음을 표현할 때 사용
+- 가우시안 분포는 평균을 중심으로 한 대칭적인 분포로, 각 픽셀에 다양한 정도의 노이즈가 추가
+- 가우시안 분포는 사진 촬영 시 센서 잡음이나 환경에서 발생하는 랜덤 잡음을 묘사
+- 노이즈가 더해진 후 픽셀 값은 원본 값에 비해 조금씩 달라지며, 전체적으로 이미지 흐릿해질 수
+```
+### 소금후추 노이즈 Salt and Pepper Noise 이미지에 추가하기
+```
+import cv2 # 이미지 처리 작업 수행
+import numpy as np # 배열 생성 및 난수 생성 처리
+image = cv2.imread('soccer.jpg’) # 이미지 읽어서 배열 형식으로 반환
+
+# 1. 후추소금 노이즈 (Salt and Pepper Noise) 적용
+# img.copy() 원본 이미지를 손ㅅ낭시키지 않기 위해 img의 복사본을 만듦
+# black = 0 픽셀 값을 검은색으로 설정, white 픽셀 값을 흰색으로 설정
+# 이미지의 크기와 동일한 크기의 랜덤 확률 배열 생성, 0과 1 사이의 값 가짐
+def add_salt_and_pepper_noise(img, prob): # 확률에 따라 랜덤하게 픽셀을 흑백(0, 255)으로 설정
+noisy = img.copy()
+black = 0
+white = 255
+probs = np.random.rand(img.shape[0], img.shape[1])
+noisy[probs < prob] = black # prob보다 작은 픽셀을 검은색 0으로 설정
+noisy[probs > 1 - prob] = white # 1-prob보다 큰 픽셀을 흰색 255로 설정 
+return noisy
+
+# 노이즈 적용, 이미지에 2% 확률로 노이즈 적용
+# 0.02인 픽셀은 검은색, 1-0.02=0.98 확률을 가진 픽셀은 흰색으로
+salt_pepper_noise_img = add_salt_and_pepper_noise(image, 0.02) # 2% 확률로 노이즈 추가
+cv2.imshow('Original Image', image)
+cv2.imshow('Salt and Pepper Noise', salt_pepper_noise_img)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+```
+### 가우시안 노이즈 Gaussian Noise를 추가하는 이미지
+```
+import cv2
+import numpy as np
+
+image = cv2.imread('soccer.jpg’)
+
+# 2. 가우시안 노이즈 (Gaussian Noise) 적용
+# mean=0 가우시안 노이즈의 평균값으로 기본 값 0
+# sigma=25 가우시안 분포의 표준편차로, 노이즈의 세기 결정
+def add_gaussian_noise(img, mean=0, sigma=25):
+row, col, ch = img.shape # 이미지의 (행,열,채널) 반환
+# 가우시안 노이즈 생성
+# 가우시안 분포에 따른 노이즈를 생성, 이 분포는 평균값 mean과 sigma기반으로 
+gauss = np.random.normal(mean, sigma, (row, col, ch)).reshape(row, col, ch)
+noisy_image = img + gauss.astype(np.uint8) # 원본 이미지에 더해져 노이즈가 추가된 이미지 만듦
+return np.clip(noisy_image, 0, 255).astype(np.uint8)
+
+# 함수를 사용해 image에 가우시안 노이즈를 추가한 후, 그 결과를 변수에 저
+gaussian_noise_img = add_gaussian_noise(image)
+cv2.imshow('Original Image', image) 
+cv2.imshow('Gaussian Noise', gaussian_noise_img)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+```
+### 영상 비네팅 효과 Vignetting Effect
+```
+비네팅 효과는 이미지의 가장자리 부분이 점점 어두워지는 시각적 효과
+카메라 렌즈 또는 디지털 후처리를 통해 발생할 수 있음
+- 이미지의 중심부는 밝게 유지되며, 가장자리로 갈수록 어두워지는 경향
+- 중심부에서의 strength 값 (강도)에 따라 이 어두워지는 정도가 결정
+- 비네팅 효과는 사진이나 영상에서 주제에 집중감을 부여하고, 시선을 중심부로 끌기 위해 용
+```
+![image](https://github.com/user-attachments/assets/fd0e3503-99fd-492b-be3f-e707443e371b)
+
+### 비네팅 효과 함수 코드
+```
+# 1. 함수 정의 및 입력 변수
+# 비네팅 효과 강도를 결정하는 인자 strength 
+def add_vignetting_effect(img, strength=200):
+
+# 2. 이미지 크기 가져오기
+# 이미지의 세로 길이와 가로 길이 가져옴
+=> 이미지의 크기 정보를 활용해 비네팅 마스크 적용하는데 사용
+rows, cols = img.shape[:2]
+
+# 3. 중심점과 거리에 따라 가중치 적용
+# 이미지의 행에 대한 좌표 배열, 이미지의 열에 대한 좌표 배열 => 격자배열 
+X_result, Y_result = np.ogrid[:rows, :cols]
+center_x, center_y = cols / 2, rows / 2 # 이미지의 중심점 계산
+# 각 픽셀이 중심점으로부터 거리를 계산을 계산하여 distance_from_center에 저장
+distance_from_center = np.sqrt((X_result - center_y)**2 + (Y_result - center_x)**2)
+
+# 4. 최대 거리 계산
+# 이미지의 중심으로부터 가장 먼 거리 계산 => 이미지의 대각선 길이 사용해 구함
+max_distance = np.sqrt(center_x**2 + center_y**2)
+
+# 5. 비네팅 마스크 생성
+# distance_from_center: 이미지의 각 픽셀이 중심에서 얼마나 떨어져있는지 나타내는 거리
+# max_distance: 이미지 중심에서 가장 먼 거리=이미지 대각선 길이
+# 각 픽셀의 거리 값을 비율로 만듦 -> 이미지 중심부는 거리가 짧아 0, 가장가리는 멀어서 1에 가까움
+# 1에서 빼면 중심부를 1에 가깝고, 가장자리는 0에 가까운 비네팅 마스크 생성
+vignetting_mask = 1 - (distance_from_center / max_distance)
+
+# 6. 비네팅 효과 강도 조절
+# 가중치 적용 후 비네팅 효과 강화
+# strength에 따라 비네팅 효과의 강도조절
+# 기본적으로 255로 나누어 범위를 맞춘 뒤 strength에 비례에 마스크 강도조절
+vignetting_mask = vignetting_mask * (strength / 255)
+# 비네팅 마스크 값이 0과 1사이 있도록 제한
+# 배열의 값을 지정된 범위로 자름으로써 계산된 값이 범위 해당 안 될 경우 0또는 1로 변
+vignetting_mask = np.clip(vignetting_mask, 0, 1)
+
+# 7. 각 채널에 비네팅 효과 적용
+result = np.zeros_like(img) # 결과 이미지를 원본이미지와 동일한 크기, 모든 값 0인 배열로 초기
+for i in range(3): # B, G, R 채널에 동일한 마스크 적용
+result[:, :, i] = img[:, :, i] * vignetting_mask
+return result.astype(np.uint8) # 결과 이미지를 np.uint8 타입으로 변환
+
+# 8. 비네팅 효과 함수 호출
+vignetted_image = add_vignetting_effect(image)
+```
+### 감마 보정 Gamma Correction
+```
+감마 보정은 이미지의 밝기를 비선형적으로 조절하는 방법
+픽셀 값마다 다른 비율로 밝기를 조절하여, 이미지의 전체 밝기를 자연스럽게 변화
+감마 보정의 공식은 출력 픽셀값 = 입력 픽셀값 ** 감마
+- 감마 < 1 => 이미지가 밝아짐
+- 감마 = 1 => 원본 이미지와 동일
+- 감마 > 1 => 이미지가 어두워짐
+- 선형적 밝기 조정(모든 픽셀을 같은 비율로 밝게 하는 것)은 자연스러움이 부족함
+=> 감마 보정은 비선형적으로 각 픽셀 값을 변화시켜 자연스러운 밝기 조정 가능해짐
+ex) 이미지의 어두운 부분은 덜 밝아지고, 밝은 부분은 더 밝아지며 균형있는 밝기 조정
+```
+![image](https://github.com/user-attachments/assets/762a53cb-d2fd-4466-b56e-11bfcc547b4c)
+
+### 감마 보정 적용 함수 
+```
+import cv2
+import numpy as np
+
+g = float(input("감마 값: "))
+img = cv2.imread("soccer.jpg")
+
+# 감마 변환 수행
+out = img.copy() # 원본 이미지를 복사해 out 변수에 저장 
+out = out.astype(np.float32)  # 이미지의 데이터 타입을 float32로 변환
+# 이미지의 픽셀 값을 0~1 사이의 값으로 변환한 후 감마 보정 적용
+# 감마 값 만큼 지수승, 다시 255 곱해 원래 픽셀 범위로 변
+out = (out / 255) ** g * 255  # 감마 변환 공식 적용
+out = out.astype(np.uint8)  # 다시 uint8 타입으로 변환해 opencv에서 이미지로 처리
+
+cv2.imshow("original", img)
+cv2.imshow("gamma", out)
+cv2.waitKey(0)
+```
+#### 이미지에서 255 나누면 0~1 사이로 변환
+```
+이미지의 픽셀 값을 255로 나누면 0~1 사이로 변환(이미지가 0에서 255사이의 값을 가짐)
+=> 0은 검은색 255는 흰색 그 사이는 회색조
+255로 나누는 이유는 픽셀 값을 0에서 1 사이로 정규화하기 위해서!
+즉 픽셀 값 255로 나누면 원래의 픽셀 값이 소수로 변환되어 0과 1사이의 값이 
+```
+### 히스토그램 정보를 활용해, 사용되지 않는 픽셀 정보 강화
+```
+이미지는 히스토그램 정보를 사용해 이미지의 픽셀 값을 조정하고, 사용되지 않는 픽셀 정보를 강화하는 과정
+- 히스토그램: 이미지의 밝기 분포를 나타내는 그래프, x축은 픽셀 값, y축운 해당 픽셀 값의 빈도
+- 문제점: 이미지의 히스토그램을 보면, 특정 구간 0~50의 픽셀 값이 거의 사용되지 않음
+=> 이미지에서 대비가 낮거나 어두운 부분이 많이 사용된다는 의미
+- 해결책: 히스토그램 평활화는 특정 값에 집중된 픽셀 분포를 좀 더 넓고 고르게 분포시키는 과정
+=> 이미지의 대비를 개선하고, 사용되지 않는 픽셀 값을 효과적으로 활용
+```
+```
+1. 위쪽 이미지: 픽셀 값이 대부분 낮은 값(어두운 부분)에 집중
+=> 이미지가 명암 대비가 낮고, 일부 정보는 거의 사용되지 않고 이씀
+2. 아래쪽 이미지: 히스토그램 평활화가 적용된 결과로, 픽셀 값의 분포가 넓어지고 고르게 분포
+=> 이미지의 대비가 개선, 사용되지 않던 픽셀 값들이 더 잘 활용, 이미지가 더 선명하고 확
+```
+![image](https://github.com/user-attachments/assets/6ef76a0f-2aa5-455f-ba38-b4d85b78fc19)
+
+### 히스토그램 평활화 Histogram Equalization
+```
+1. 히스토그램
+- 이미지에서 각 픽셀 밝기 값이 얼마나 많이 사용되었는지 보여주는 그래프
+- 특정 구간에 픽셀 값이 몰려있을 경우, 그 부분의 대비가 낮아져 이미지가 흐릿하거나 디테일 부족
+2. 히스토그램 평활화 Histogram Equalization
+- 히스토그램 평활화는 이미지의 밝기 값을 더 균일하게 분포시키는 기법
+- 이 과정을 통해 픽셀 값의 범위를 넓히고, 대비를 강화
+=> 어두운 부분은 밝게, 밝은 부분은 더 선명하게 표현
+3. 작동 원리
+- 히스토그램 평활화는 밝기 채널에만 적용
+(색상 정보는 유지하면서 밝기만 조정하여 이미지의 컬러 정보가 왜곡되지 않도록 하기 위함)
+- RGB 컬러 이미지의 경우, LAB 또는 HSV 색공간 변환한 후, 밝기 채널에만 평활화 적용
+마지막으로 다시 RGB로 변환하여 결과를 얻음 
+```
+```
+1. 왼쪽 이미지
+왼본 이미지는 대비가 낮고 흐릿하게 보임, 픽셀 값이 좁은 범위에 분포되어 있어 이미지가 흐릿함
+2. 오른쪽 이미지
+평활화가 적용되면 이미지의 밝기 값이 더 넓은 범위에 분포, 대비가 개선, 디테일 잘 보임
+원본 이미지에 비해 밝은 부분은 더 밝고, 어두운 부분은 더 뚜렷해지는 효과 
+```
+![image](https://github.com/user-attachments/assets/57688a1f-ed7a-4bff-98af-fc5f05da7dd3)
+
+### 히스토그램 평활화 코드 >> 
+```
+import cv2
+# 컬러 이미지 읽기
+image = cv2.imread('hazy.jpg') # 이미지 BGR 형식 저장, 기본 색공간 
+# BGR에서 LAB 색 공간으로 변환
+lab_image = cv2.cvtColor(image, cv2.COLOR_BGR2LAB) # LAB 색공간 변환 
+# L, A, B 채널 분리
+L, A, B = cv2.split(lab_image)
+
+# L 채널에 히스토그램 평활화 적용
+# cv2.equalizeHist() 이미지의 히스토그램 평활화를 적용하는 함수
+# 히스토그램 평활화는 픽셀의 밝기 값 분포를 평탄화하여 대비를 개선하는 기법
+# L채널에만 적용하므로, 이미지의 색상 정보는 유지되고 밝기 정보만 개선  
+L_eq = cv2.equalizeHist(L)
+
+# 평활화된 L 채널과 원본 A, B 채널을 다시 합침
+# 원래의 채널 두 개와 L_eq 채널 합쳐 LAB 이미지 만듦
+lab_eq_image = cv2.merge([L_eq, A, B])
+
+# LAB에서 다시 BGR로 변환
+equalized_image = cv2.cvtColor(lab_eq_image, cv2.COLOR_LAB2BGR)
+cv2.imshow('Original Image', image)
+cv2.imshow('Equalized Image', equalized_image)
+cv2.waitKey(0)
+cv2.destroyAllWindows() 
+```
+### 콘트라스트 스트레칭 Contrast Stretching
+```
+개념 >>
+- 콘트라스트 스트레칭은 이미지의 최소값과 최대값을 기준으로 픽셀 값을 선형적으로 변환해, 전체적인 대비 증가
+- 이미지의 어두운 부분은 더 어둡게, 밝은 부분은 더 밝게 만들어 전체 이미지의 대비가 향상
+
+```
+#### 새로운 픽셀 값의 공식
+#### New pixel = (pixel_value-min_val) / (max_val-min_val) * 255
+```
+- pixel_value: 현재 픽셀 값
+- min_val: 이미지에 사용된 최소 픽셀 값
+- max_val: 이미지에 사용된 최대 픽셀 값
+=> 이미지의 픽셀 값을 0에서 255 사이로 재분포하는 과정
+```
+```
+1. 왼쪽 이미지 = 원본
+- 원본 이미지는 전체적으로 밝기 범위가 좁고, 대비가 낮아 흐릿함
+이미지가 어둡고 명암비가 부족해보이는 전형적인 경우
+
+2. 오른쪽 이미지
+- 콘트라스트 스테리칭을 적용한 후, 이미지의 밝기 범위가 전체적으로 확장되면서,
+어두운 부분은 더 어둡게, 밝은 부분은 더 밝게 됨
+- 이미지의 대비가 증가하고, 전체적인 선명도와 명암비 개선 
+```
+![image](https://github.com/user-attachments/assets/9180df08-e927-40b9-9109-9771a1f8bd99)
+
+### 콘트라스트 스트레칭 함수 부분 >> 
+```
+import cv2
+import numpy as np
+# 이미지 읽기
+image = cv2.imread('hazy.jpg')
+# 이미지의 최소값과 최대값 찾기
+min_val = np.min(image) # 이미지 배열에서 최소값 = 가장 어두운 부분
+max_val = np.max(image) # 이미지 배열에서 최대값 = 가장 밝은 부분
+
+# 콘트라스트 스트레칭 적용 (새로운 범위: 0~255)
+stretched_image = ((image - min_val) / (max_val - min_val) * 255).astype(np.uint8)
+cv2.imshow('Original Image', image)
+cv2.imshow('Contrast Stretched Image', stretched_image)
+cv2.waitKey(0)
+cv2.destroyAllWindows() 
+```
+## 4. 영상 변환
+### 크기 조절 Scaling과 보간법 Interpolation
+```
+이미지의 크기를 조절할 때, 새로운 픽셀 값을 어떻게 계산할 것인가에 따라 보간법 달라짐
+보간법은 기존의 픽셀 값을 기반으로 새로운 픽셀 값을 계산하여, 크기를 조정한 이미지의 품질 결정
+```
+```
+이미지 세 개 비교 >>
+1. 최근접 이웃: 확대된 이미지에서 픽셀이 도드라져 보이며, 경계가 뚜렷(계단 현상)
+2. 양선형 보간: 확대된 이미지가 상대적으로 부드럽고 자연스러우며, 경계 부드러움
+3. 양3차보간: 가장 자연스러운 확대 -> 픽셀 간의 경계가 가장 부드럽고 이미지 품질이 유
+```
+![image](https://github.com/user-attachments/assets/a012726c-38d6-480c-bbef-5e00a5bfee0d)
+### 보간법의 종류 >>
+```
+1. 1D Nearest-Neighbor (1차원 최근접 이웃)
+: 새로운 픽셀 위치에서 가장 가까운 픽셀 값을 그대로 복사하여 사용하는 방법
+계산이 매우 빠르고 간단하지만, 확대된 이미지에서 계단 현상과 같은 불연속적인 픽셀 경계 나타냄
+2. Linear Interpolation (선형 보간)
+: 두 점 사이에 있는 새로운 픽셀 값을 선형적으로 계산
+1D에서만 적용되는 방식, 근처 픽세 값을 기반으로 직선을 그려 중간값 보간해 부드러움 추가
+3. Cubinc Interpolation (3차원 함수 보간)
+: 3차 함수를 사용해 두 점 사이의 값 보간
+직선보다 부드러운 곡선으로 보간, 선형 보간보다 더 자연스럽게 픽셀 값 계산
+4. 2D Nearest-Neighbor (2차원 최근접 이웃)
+: 1차원 최근접 이웃의 2차원 버전으로, 가장 가까운 픽셀 값을 사용하는 방식
+가장 가까운 픽셀 값을 그대로 복사하기 때문에 이미지 확대 시 경계선이 뚜렷 (계단 현상)
+5. Bilinear Interpolation (양선형 보간)
+: 주변 4개의 픽셀 값을 사용해 새로운 픽셀 값 계산
+2D 이미지에서 널리 사용되며, 주변 픽셀 값 선형으로 평균내어 부드럽게 보간
+6. Bicubic Interpolation (양3차보간)
+: 주변 16개의 픽셀 값 사용하여 새로운 픽셀 값 보간하는 방식
+2D이미지에서 가장 자연스러운 보간법 중 하나, 주위 픽셀 값을 3차함수로 계산해 매우 부드러운 이미지  
+```
+#### 요약 >>>>
+```
+- 1D 및 2D Nearest-Neighbor: 계산이 빠르지만 이미지 품질이 낮으며, 계단 현상 발생
+- Linear: 간단한 선형 보간법으로, 두 점 사이의 값을 직선을 연결해 계싼
+- Cubic: 곡선을 기반으로 더 부드러운 결과 제공
+- Bilinear: 주변 4개의 픽셀을 고려하여 새로운 픽셀 값을 계산하므로 부드러운 보간
+- Bicubic: 주변 16개의 픽셀을 사용해 가장 자연스럽고 부드러운 보간 제공, 이미지 확대에 유
+```
+![image](https://github.com/user-attachments/assets/25751c88-7507-4768-8105-cab1e42b63e8)
+
+### 보간법 3가지 주요 방식 >>
+```
+1. 최근접 이웃 보간법 Nearest Neighbor Interpolation
+: 새로 생성된 픽셀의 값이 가장 가까운 픽셀 값을 그대로 복사하는 방법
+방식 >>
+이미지 확대 시, 새로 생긴 빈 픽셀을 인접한 기존 픽셀로 채우는 방식
+Ex) 1과 2사이에 새로운 픽셀 값 넣을 때 1 또는 2 중 하나로 유지
+
+2. 양선형 보간법 Bilinear Interpolation
+: 새로운 픽셀 값이 주변의 4개 픽셀 값을 선형적으로 보간하여 계산
+방식 >>
+그래프에서 X좌표의 중간 위치에 새로운 픽셀을 추가할 때 주변 두 값 (a,b) 사이의
+선형적 관계를 통해 중간 값 f(x) 계산
+
+3. 양3차 보간법 Bicubic Interpolation
+: 주변 16개의 픽셀의 값을 사용해 3차 함수 곡선을 그려 새로운 픽셀 값을 계산하는 방법
+방식 >>
+3차함수 곡선 f(x)를 사용해 픽셀 사이 중간 값 계산, 주변 픽셀을 이용해 곡선의 형태 만들어 얻음 
+```
+### 보간법 적용 함수 >>
+```
+import cv2
+import numpy as np
+image = cv2.imread('soccer.jpg')
+
+# 이미지 자르기 crop: 배열 슬라이싱 방식 
+crop_image = image[150:200, 150:200]
+resize_dim = (200, 200)
+
+# Nearest Neighbor 방식으로 리사이즈
+# 계산이 빠르지만 이미지 품질 낮고, 계단 현상 발생 가능성
+resize_nn = cv2.resize(crop_image, resize_dim, interpolation=cv2.INTER_NEAREST)
+
+# Bilinear 방식으로 리사이즈
+# 주변 4개의 픽셀 값을 선형적으로 보간하여 부드럽게 크기 조정하는 방식
+=> 이미지의 경계선이 덜 도드라지고 부드럽게 나타남 
+resize_bilinear = cv2.resize(crop_image, resize_dim, interpolation=cv2.INTER_LINEAR)
+
+# Bicubic 방식으로 리사이즈
+# 주변 16개의 픽셀 값을 3차함수로 보간하여 더 부드럽고 자연스러운 결과 제공
+=> 계산은 복잡하지만, 이미지 확대 시 품질이 가장 우수 
+resize_bicubic = cv2.resize(crop_image, resize_dim, interpolation=cv2.INTER_CUBIC)
+
+result = cv2.hconcat([resize_nn, resize_bilinear, resize_bicubic])
+cv2.imshow('Resized Comparison', result)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+```
+### 여러가지 기하 변환
+```
+1. 회전 (Rotation): 이미지의 기준점을 중심으로 특정 각도만큼 회전시키는 변환
+
+2. 이동: 이미지를 좌우, 상하로 이동시키는 변환
+
+3. 크기 변경: 이미지를 확대하거나 축소하는 변환
+
+4. 이동과 크기 변경 (Translation + Scaling): 이미지 이동하고 크기 변경하는 복합 변환
+```
+![image](https://github.com/user-attachments/assets/344f660d-bfac-448f-ba6b-88f99a358bad)
+#### 이동, 회전, 크기 등 동차행렬 연산을 통해 변환
+```
+- 이동 변환: 객체를 x와 y방향으로 각각 t_x, t_y만큼 이동시키는 변환
+- 회전 변환: 원점을 기준으로 세타만큼 회전시키는 변환, 반시계 방향각도
+- 크기 조절 변환: 객체의 크기를 x축과 y축에 대해 s_x, s_y배 확대하거나 축소하는 변
+```
+![image](https://github.com/user-attachments/assets/ad85abbd-d8e4-4d77-88fe-01afb62a99a9)
+#### 이미지 이동 코드 >>
+```
+import cv2
+import numpy as np
+
+img = cv2.imread('soccer.jpg')
+h, w, c = img.shape # 이미지의 높이, 너비, 채널 정보 반환 
+
+# translation matrix 2*3 행렬 정의
+# x축으로 -100픽셀, y축으로 -200픽셀을 이동
+# np.float32()는 변환 행렬을 32비트 부동 소수점 형식으로 만듦
+M = np.float32([[1, 0, -100], [0, 1, -200]])
+
+# affine 변환 적용
+# cv2.warpAffine(): 변환 행렬 M을 사용하여 원본 이미지에 img에 affine 변환 적용 함수
+dst = cv2.warpAffine(img, M, (w, h))
+
+cv2.imshow('Original', img)
+cv2.imshow('Translation', dst)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+```
+### 이미지 이동 Translation
+```
+- 이미지 이동은 이미지의 각 픽셀을 x축과 y축으로 특정 거리만큼 이동시키는 변환
+- 이동변환은 이미지의 모양과 크기는 변하지 않지만, 좌표 위치가 변동
+- 이때, 이미지를 이동하는 행렬 변환 사용
+```
+![image](https://github.com/user-attachments/assets/2915b393-d54d-4342-aa90-8bf4716aa993)
+
+### 이미지 회전 및 크기 변환 코드 
+```
+import cv2
+
+img = cv2.imread('soccer.jpg')
+h, w, c = img.shape
+
+# cv2.getRotationMatrix2D(): 이미지를 회전시키기 위한 2D 회전 변환 행렬 생성
+# 첫 번째 인자: 회전의 중심점 지정, 이 코드에서는 이미지의 중심이 기준
+# 두 번째 인자: 회전 각도 지정, 반시계로 45도 회전
+# 세 번째 인자: 0.5배 축소 의미, 이미지 크기를 절반으로 줄이는 스케일링 값 설정 
+M = cv2.getRotationMatrix2D((w/2, h/2), 45, 0.5)
+
+# cv2.warpAffine() 함수는 변환행렬 M을 사용해 원본 이미지 img에 회전 및 크기 변환을 적용하는 함수
+dst = cv2.warpAffine(img, M, (w, h))
+
+cv2.imshow('Original', img)
+cv2.imshow('Rotation', dst)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
 ```
 
+![image](https://github.com/user-attachments/assets/5400e3f8-7336-427e-a321-d84330cd8e55)
 
 
-
-
-
-
-
-
-
+## 5. 영상 품질 측정 
+#### PSNR (최대 신호 대 잡음 비, Peak Signal Noise Ratio)
+```
+PSNR은 이미지나 영상의 화질 손실을 측정하기 위해 사용되는 지표
+신호의 최대값에 비해 잡음(노이즈)가 얼마나 있는지를 나타내며, 두 이미지 간의 품질 차이 평가
+PSNR는 데시벨 dB단위로 표현, 값이 클수록 품질이 좋다는 것을 의미
+```
+![image](https://github.com/user-attachments/assets/139faee0-fafe-4b6b-bfe9-604c03f4b799)
+```
+- PIXEL_MAX는 이미지의 최대 픽셀 값, 8비트 이미지는 0~255 가지므로 255
+- MSE(Mean Squared Error) 두 이미지 간의 차이를 계산하는 지표, 각 픽셀 값의 차이 제곱 평균
+=> 작을수록 두 이미지가 더 유사
+=> PSNR은 MSE값이 작을수록 (이미지 간의 차이가 적을수록) 값이 커지며, 높은 PSNR값은 더 높은 화질 의미
+```
+```
+def calculate_psnr(img1, img2):
+    mse = np.mean((img1 - img2) ** 2)  # 두 이미지 간의 MSE 계산
+    if mse == 0:  # 두 이미지가 동일할 경우 MSE가 0이므로 PSNR은 무한대가 됨
+        return 100  # 완벽한 품질이므로 100으로 설정
+    PIXEL_MAX = 255.0  # 8비트 이미지의 최대 픽셀 값
+    psnr = 20 * np.log10(PIXEL_MAX / np.sqrt(mse))  # PSNR 계산 공식
+    return psnr
+```
+### SSIM (구조적 유사도 측정 지표, Structural Similarity Index Measure)
+```
+두 이미지 간의 구조적 유사도를 평가하기 위한 지표, PSNR보다 인간의 시각적 특성을
+더 잘 반영하는 평가방법 SSIM은 이미지의 대비, 밝기, 구조 요소를 고려해 유사도 측정
+```
+![image](https://github.com/user-attachments/assets/bc92bb0e-35be-46f3-894d-ea5bd3ce115e)
+```
+1. 1에 가까울수록 두 이미지가 구조적으로 매우 유사함
+2. 0에 가까울수록 두 이미지 간의 구조적 차이가 큼
+3. SSIM과 PSNR은 다르다
+PSNR은 두 이미지 간의 픽셀 값 차이에 집중하지만, SSIM은 구조적 유사성을 평가
+두 지표는 항상 비례하지 않으며, PSNR이 높아도 SSIM이 낮을 수 있음
+이미지의 구조적 요소가 유지되지 않았다는 것을 의미 
+```
