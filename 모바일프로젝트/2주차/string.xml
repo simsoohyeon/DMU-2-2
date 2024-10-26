@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">M02_LayoutView</string> <!-- 앱의 이름을 정의합니다. 앱이 설치된 장치에서 표시됩니다. -->
+    <string name="title">동양 나눔 장터</string> <!-- 주 제목을 정의하며, 주로 메인 화면 또는 제목 표시줄에 사용됩니다. -->
+    <string name="title1">동양 나눔 등록</string> <!-- 특정 화면이나 섹션의 제목을 정의합니다. 여기서는 등록 화면의 제목으로 사용됩니다. -->
+    <string name="link">https://www.dongyang.ac.kr</string> <!-- 관련 웹사이트의 URL을 정의합니다. 필요에 따라 링크를 클릭할 수 있는 요소에 사용될 수 있습니다. -->
+    <string name="detail_hint">상품의 상태 등 정보를 입력해 주세요.</string> <!-- 사용자에게 입력해야 할 내용을 안내하는 힌트 텍스트입니다. 주로 입력 필드에 사용되어, 사용자가 어떤 정보를 입력해야 하는지 알려줍니다. -->
+</resources>
