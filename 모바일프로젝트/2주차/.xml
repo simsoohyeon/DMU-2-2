@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?> <!-- XML 버전 및 인코딩 선언 -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent" <!-- ConstraintLayout의 폭을 화면 크기에 맞춤 -->
+    android:layout_height="match_parent" <!-- ConstraintLayout의 높이를 화면 크기에 맞춤 -->
+    tools:context=".MainActivity"> <!-- 이 레이아웃의 컨텍스트가 MainActivity임을 지정 -->
+
+    <!-- 제목 TextView -->
+    <TextView
+        android:id="@+id/textTitle" <!-- 이 TextView의 ID 정의 -->
+        android:layout_width="wrap_content" <!-- 폭을 내용에 맞춤 -->
+        android:layout_height="wrap_content" <!-- 높이를 내용에 맞춤 -->
+        android:text="@string/title1" <!-- 문자열 리소스에서 텍스트 설정 -->
+        android:textSize="30sp" <!-- 텍스트 크기 설정 -->
+        android:textStyle="bold" <!-- 텍스트 스타일을 굵게 설정 -->
+        app:layout_constraintBottom_toBottomOf="parent" <!-- 부모의 아래쪽에 제약조건 설정 -->
+        app:layout_constraintEnd_toEndOf="parent" <!-- 부모의 오른쪽에 제약조건 설정 -->
+        app:layout_constraintStart_toStartOf="parent" <!-- 부모의 왼쪽에 제약조건 설정 -->
+        app:layout_constraintTop_toTopOf="parent" <!-- 부모의 위쪽에 제약조건 설정 -->
+        app:layout_constraintVertical_bias="0.12" /> <!-- 수직 비율 설정 -->
+
+    <!-- 이미지 아이콘 -->
+    <ImageView
+        android:id="@+id/imageView" <!-- 이미지 뷰의 ID 정의 -->
+        android:layout_width="291dp" <!-- 고정 폭 설정 -->
+        android:layout_height="288dp" <!-- 고정 높이 설정 -->
+        android:layout_marginStart="16dp" <!-- 시작 마진 설정 -->
+        android:layout_marginEnd="16dp" <!-- 끝 마진 설정 -->
+        android:layout_marginBottom="32dp" <!-- 아래 마진 설정 -->
+        app:layout_constraintBottom_toBottomOf="parent" <!-- 부모의 아래쪽에 제약조건 설정 -->
+        app:layout_constraintEnd_toEndOf="parent" <!-- 부모의 오른쪽에 제약조건 설정 -->
+        app:layout_constraintStart_toStartOf="parent" <!-- 부모의 왼쪽에 제약조건 설정 -->
+        app:layout_constraintTop_toBottomOf="@+id/textTitle" <!-- textTitle 아래에 제약조건 설정 -->
+        app:layout_constraintVertical_bias="0.0" <!-- 수직 비율 설정 -->
+        app:srcCompat="@drawable/box" /> <!-- drawable 리소스에서 이미지 설정 -->
+
+    <!-- 네 개의 버튼들이 수평으로 배치된 LinearLayout -->
+    <LinearLayout
+        android:layout_width="421dp" <!-- 고정 폭 설정 -->
+        android:layout_height="127dp" <!-- 고정 높이 설정 -->
+        android:gravity="center" <!-- 자식 뷰들을 중앙 정렬 -->
+        android:orientation="horizontal" <!-- 수평 방향으로 배치 -->
+        android:padding="20dp" <!-- 패딩 설정 -->
+        app:layout_constraintBottom_toBottomOf="parent" <!-- 부모의 아래쪽에 제약조건 설정 -->
+        app:layout_constraintEnd_toEndOf="parent" <!-- 부모의 오른쪽에 제약조건 설정 -->
+        app:layout_constraintStart_toStartOf="parent" <!-- 부모의 왼쪽에 제약조건 설정 -->
+        app:layout_constraintTop_toBottomOf="@+id/imageView" <!-- imageView 아래에 제약조건 설정 -->
+        app:layout_constraintVertical_bias="0.0"> <!-- 수직 비율 설정 -->
+
+        <!-- 각 버튼 -->
+        <Button
+            android:id="@+id/button5" <!-- 버튼의 ID 정의 -->
+            android:layout_width="0dp" <!-- 폭을 0dp로 설정, weight 사용 -->
+            android:layout_height="wrap_content" <!-- 높이를 내용에 맞춤 -->
+            android:layout_weight="1" <!-- 공간을 균등하게 배분 -->
+            android:text="의류" <!-- 버튼 텍스트 설정 -->
+            android:textSize="20sp" /> <!-- 텍스트 크기 설정 -->
+
+        <Button
+            android:id="@+id/button8"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="도서"
+            android:textSize="20sp" />
+
+        <Button
+            android:id="@+id/button9"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="가전"
+            android:textSize="20sp" />
+
+        <Button
+            android:id="@+id/button10"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="기타"
+            android:textSize="20sp" />
+    </LinearLayout>
+
+    <!-- 등록/취소 버튼을 포함하는 수평 LinearLayout -->
+    <LinearLayout
+        android:id="@+id/linearLayout" <!-- LinearLayout의 ID 정의 -->
+        android:layout_width="400dp" <!-- 고정 폭 설정 -->
+        android:layout_height="149dp" <!-- 고정 높이 설정 -->
+        android:layout_marginTop="20dp" <!-- 위쪽 마진 설정 -->
+        android:gravity="end" <!-- 자식 뷰들을 오른쪽 정렬 -->
+        android:orientation="horizontal" <!-- 수평 방향으로 배치 -->
+        android:padding="20dp" <!-- 패딩 설정 -->
+        app:layout_constraintBottom_toBottomOf="parent" <!-- 부모의 아래쪽에 제약조건 설정 -->
+        app:layout_constraintEnd_toEndOf="parent" <!-- 부모의 오른쪽에 제약조건 설정 -->
+        app:layout_constraintHorizontal_bias="1.0" <!-- 수평 비율 설정 -->
+        app:layout_constraintStart_toStartOf="parent" <!-- 부모의 왼쪽에 제약조건 설정 -->
+        app:layout_constraintTop_toBottomOf="@+id/imageView" <!-- imageView 아래에 제약조건 설정 -->
+        app:layout_constraintVertical_bias="0.324"> <!-- 수직 비율 설정 -->
+
+        <Button
+            android:id="@+id/button" <!-- 등록 버튼의 ID 정의 -->
+            android:layout_width="wrap_content" <!-- 폭을 내용에 맞춤 -->
+            android:layout_height="wrap_content" <!-- 높이를 내용에 맞춤 -->
+            android:layout_weight="0" <!-- weight 설정 없이 고정 -->
+            android:text="등록" <!-- 버튼 텍스트 설정 -->
+            android:textSize="20sp" /> <!-- 텍스트 크기 설정 -->
+
+        <Button
+            android:id="@+id/button2" <!-- 취소 버튼의 ID 정의 -->
+            android:layout_width="wrap_content" <!-- 폭을 내용에 맞춤 -->
+            android:layout_height="wrap_content" <!-- 높이를 내용에 맞춤 -->
+            android:layout_weight="0" <!-- weight 설정 없이 고정 -->
+            android:text="취소" <!-- 버튼 텍스트 설정 -->
+            android:textSize="20sp" /> <!-- 텍스트 크기 설정 -->
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
