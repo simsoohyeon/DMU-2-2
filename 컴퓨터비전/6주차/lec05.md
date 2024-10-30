@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/54ede6c9-2c9b-4f6c-81fe-de26cf33572c)# 1. 에지 검출 개요 
+# 1. 에지 검출 개요 
 ```
 에지 edge 검출은 이미지에서 물체의 경계를 찾아내는 기법
 이미지 분석의 기본 단계로, 컴퓨터 비전에서 중요한 역할
